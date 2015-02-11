@@ -10,6 +10,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import ca.ualberta.cs.lonelytwitter.LonelyTwitterActivity;
 import ca.ualberta.cs.lonelytwitter.NormalTweetModel;
+import ca.ualberta.cs.lonelytwitter.TweetSetModel;
 
 /*
  * generate this class with new.. JUnit Test Case
@@ -21,6 +22,7 @@ public class LonelyTwitterActivityUITest extends
 	Instrumentation instrumentation;
 	Activity activity;
 	EditText textInput;
+	private ListView oldTweetList;
 	
 	public LonelyTwitterActivityUITest() {
 		super(LonelyTwitterActivity.class);
@@ -32,8 +34,44 @@ public class LonelyTwitterActivityUITest extends
 		activity = getActivity();
 
 		textInput = ((EditText) activity.findViewById(ca.ualberta.cs.lonelytwitter.R.id.body));
+		oldTweetList = (ListView) activity.findViewById(ca.ualberta.cs.lonelytwitter.R.id.oldTweetsList);
+		
 	}
 	
+	
+	
+	public void testSettingText(){
+		// set thread
+		instrumentation.runOnMainSync(new Runnable(){
+			@Override
+			public void run(){
+				textInput.setText("Text");
+				
+			}
+		});
+		
+		instrumentation.waitForIdleSync();
+		assertEquals("Text?","Text",textInput.getText().toString());
+	}
+	
+	
+	public void testAdapterTest(){
+		int originalCount = oldTweetList.getAdapter().getCount();
+		// set thread
+			instrumentation.runOnMainSync(new Runnable(){
+			@Override
+			public void run(){
+				makeTweet("Hello"); 
+			}
+		});
+				
+			instrumentation.waitForIdleSync();
+			NormalTweetModel testTweet = (NormalTweetModel) oldTweetList.getAdapter().getItem(originalCount);
+			assertEquals("new?",oldTweetList.getAdapter().getCount(),originalCount+1);
+			assertTrue("type", testTweet instanceof NormalTweetModel);
+			assertEquals("Text?", testTweet.getText(),"Hello");
+
+	}
 	/*
 	 * fills in the input text field and clicks the 'save'
 	 * button for the activity under test
